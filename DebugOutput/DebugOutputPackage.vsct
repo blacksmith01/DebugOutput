@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Include href="KnownImageIds.vsct"/>
+
+  <!--  This is the file that defines the actual layout and type of the commands.
+        It is divided in different sections (e.g. command definition, command
+        placement, ...), with each defining a specific set of properties.
+        See the comment before each section for more details about how to
+        use it. -->
+
+  <!--  The VSCT compiler (the tool that translates this file into the binary
+        format that VisualStudio will consume) has the ability to run a preprocessor
+        on the vsct file; this preprocessor is (usually) the C++ preprocessor, so
+        it is possible to define includes and macros with the same syntax used
+        in C++ files. Using this ability of the compiler here, we include some files
+        defining some of the constants that we will use inside the file. -->
+
+  <!--This is the file that defines the IDs for all the commands exposed by VisualStudio. -->
+  <Extern href="stdidcmd.h" />
+
+  <!--This header contains the command ids for the menus provided by the shell. -->
+  <Extern href="vsshlids.h" />
+  <Extern href="VSDbgCmd.h" />
+  <Extern href="VsDebugGuids.h" />
+
+  <!--The Commands section is where commands, menus, and menu groups are defined.
+      This section uses a Guid to identify the package that provides the command defined inside it. -->
+  <Commands package="guidDebugOutputPackage">
+    <!-- Inside this section we have different sub-sections: one for the menus, another
+    for the menu groups, one for the buttons (the actual commands), one for the combos
+    and the last one for the bitmaps used. Each element is identified by a command id that
+    is a unique pair of guid and numeric identifier; the guid part of the identifier is usually
+    called "command set" and is used to group different command inside a logically related
+    group; your package should define its own command set in order to avoid collisions
+    with command ids defined by other packages. -->
+
+	<Menus>
+		<Menu guid="guidDebugOutputPackageCmdSet" id="cmdidDebugOutput_Toolbar" type="ToolWindowToolbar">
+			<Strings>
+				<ButtonText>Toolbar1</ButtonText>
+				<CommandName>Toolbar1</CommandName>
+			</Strings>
+		</Menu>
+	</Menus>
+    <!--Buttons section. -->
+    <!--This section defines the elements the user can interact with, like a menu command or a button
+        or combo box in a toolbar. -->
+    <Buttons>
+      <!--To define a menu group you have to specify its ID, the parent menu and its display priority.
+          The command is visible and enabled by default. If you need to change the visibility, status, etc, you can use
+          the CommandFlag node.
+          You can add more than one CommandFlag node e.g.:
+              <CommandFlag>DefaultInvisible</CommandFlag>
+              <CommandFlag>DynamicVisibility</CommandFlag>
+          If you do not want an image next to your command, remove the Icon node /> -->
+      <Button guid="guidDebugOutputPackageCmdSet" id="cmdidDebugOutputWindowCommand" priority="0x0100" type="Button">
+        <Parent guid="guidVSDebugGroup" id="IDG_DEBUG_WINDOWS_GENERAL" />
+        <Icon guid="ImageCatalogGuid" id="Output" />
+		  <CommandFlag>IconIsMoniker</CommandFlag>
+		  <Strings>
+          <ButtonText>DebugOutputWindow</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidDebugOutputPackageCmdSet" id="cmdidDebugOutputSettingWindowCommand" priority="0x0100" type="Button">
+        <Parent guid="guidVSDebugGroup" id="IDG_DEBUG_WINDOWS_GENERAL" />
+        <Icon guid="ImageCatalogGuid" id="Settings" />
+		  <CommandFlag>IconIsMoniker</CommandFlag>
+		  <Strings>
+          <ButtonText>DebugOutputSettingWindow</ButtonText>
+        </Strings>
+      </Button>
+
+	  <Button guid="guidDebugOutputPackageCmdSet" id="OpenSettings" priority="0x0001" type="Button">
+	  	<Parent guid="guidDebugOutputPackageCmdSet" id="cmdidDebugOutput_ToolbarGroupGeneral" />
+	  	<Icon guid="ImageCatalogGuid" id="Settings" />
+		  <CommandFlag>IconIsMoniker</CommandFlag>
+		  <Strings>
+	  		<CommandName>OpenSettings</CommandName>
+	  		<ButtonText>Settings</ButtonText>
+	  		<MenuText>DebugOutput Settings</MenuText>
+	  		<LocCanonicalName>OpenSettings</LocCanonicalName>
+	  	</Strings>
+	  </Button>
+
+	  <Button guid="guidDebugOutputPackageCmdSet" id="ClearList" priority="0x0002" type="Button">
+	  	<Parent guid="guidDebugOutputPackageCmdSet" id="cmdidDebugOutput_ToolbarGroupGeneral" />
+	  	<Icon guid="ImageCatalogGuid" id="ClearWindowContent" />
+		  <CommandFlag>IconIsMoniker</CommandFlag>
+		  <Strings>
+	  		<CommandName>ClearList</CommandName>
+	  		<ButtonText>Clear</ButtonText>
+	  		<MenuText>DebugOutput Clear</MenuText>
+	  		<LocCanonicalName>ClearList</LocCanonicalName>
+	  	</Strings>
+	  </Button>
+
+		<Button guid="guidDebugOutputPackageCmdSet" id="CollapseHeader" priority="0x0003" type="Button">
+			<Parent guid="guidDebugOutputPackageCmdSet" id="cmdidDebugOutput_ToolbarGroupGeneral" />
+			<Icon guid="ImageCatalogGuid" id="CollapsiblePanel" />
+			<CommandFlag>IconIsMoniker</CommandFlag>
+			<Strings>
+				<CommandName>CollapseHeader</CommandName>
+				<ButtonText>Collapse</ButtonText>
+				<MenuText>DebugOutput Collapse</MenuText>
+				<LocCanonicalName>CollapseHeader</LocCanonicalName>
+			</Strings>
+		</Button>
+		
+    </Buttons>
+
+	  <Groups>
+		  <Group guid="guidDebugOutputPackageCmdSet" id="cmdidDebugOutput_Toolbar" priority="0x0600">
+			  <Parent guid="guidDebugOutputPackageCmdSet" id="cmdidDebugOutput_Toolbar" />
+		  </Group>
+		  <Group guid="guidDebugOutputPackageCmdSet" id="cmdidDebugOutput_ToolbarGroupGeneral" priority="0x0010">
+			  <Parent guid="guidDebugOutputPackageCmdSet" id="cmdidDebugOutput_Toolbar" />
+		  </Group>
+	  </Groups>
+	  
+  </Commands>
+
+  <Symbols>
+    <!-- This is the package guid. -->
+    <GuidSymbol name="guidDebugOutputPackage" value="{eaa8b0e1-f5f0-4fe3-8cb9-792622c32b0b}" />
+
+	  <!-- This is the guid used to group the menu commands together -->
+	  <GuidSymbol name="guidDebugOutputPackageCmdSet" value="{a6d24558-6c2f-4d54-afcb-3870618a6daf}">
+		<IDSymbol value="0x0010" name="cmdidDebugOutputWindowCommand" />
+	    <IDSymbol value="0x0020" name="cmdidDebugOutputSettingWindowCommand" />
+		<IDSymbol value="0x0100" name="cmdidDebugOutput_Toolbar" />
+		<IDSymbol value="0x0110" name="cmdidDebugOutput_ToolbarGroupGeneral" />
+		<IDSymbol value="0x0120" name="OpenSettings" />
+		<IDSymbol value="0x0130" name="ClearList" />
+		<IDSymbol value="0x0140" name="CollapseHeader" />
+	  </GuidSymbol>
+  
+  </Symbols>
+</CommandTable>
