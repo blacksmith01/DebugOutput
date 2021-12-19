@@ -2,14 +2,52 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace DebugOutput
 {
+    public class OutputViewColumnInfo : ICloneable
+    {
+        public string Name { get; set; }
+        public int Order { get; set; }
+        public double Width { get; set; }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
+    }
+    public class OutputViewSettings : ICloneable
+    {
+        public Visibility HeaderVisibility { get; set; } = Visibility.Visible;
+        public List<OutputViewColumnInfo> Columns { get; set; }
+
+        public static readonly OutputViewSettings Default = new OutputViewSettings
+        {
+            Columns = new List<OutputViewColumnInfo>
+            {
+                new OutputViewColumnInfo { Name = "DateTime", Order = 0, Width = 100 },
+                new OutputViewColumnInfo { Name = "Level", Order = 1, Width = 50 },
+                new OutputViewColumnInfo { Name = "Thread", Order = 2, Width = 50 },
+                new OutputViewColumnInfo { Name = "Text", Order = 3, Width = 300 },
+                new OutputViewColumnInfo { Name = "File", Order = 4, Width = 100 },
+                new OutputViewColumnInfo { Name = "Line", Order = 5, Width = 50 },
+            }
+        };
+        public static readonly string DefaultSerialized = JsonConvert.SerializeObject(Default);
+
+        public object Clone()
+        {
+            var obj = MemberwiseClone() as OutputViewSettings;
+            obj.Columns = Columns.Select(x => x.Clone() as OutputViewColumnInfo).ToList();
+            return obj;
+        }
+    }
+
     public class RegexCaptureOrderItem : ICloneable
     {
         public string Name { get; set; }
@@ -123,44 +161,6 @@ namespace DebugOutput
             return MemberwiseClone();
         }
     }
-    public class LogLevelList : ObservableCollection<LogLevelItem>
-    {
-        public void Assign(List<LogLevelItem> newList)
-        {
-            if (Count != newList.Count)
-            {
-                Clear();
-
-                foreach (var e in newList)
-                {
-                    Add(e.Clone() as LogLevelItem);
-                }
-            }
-            else
-            {
-                for (int i = 0; i < Count; i++)
-                {
-                    var src = newList[i];
-                    var dst = this[i];
-                    dst.Name = src.Name;
-                    dst.Match = src.Match;
-                    dst.ColorType = src.ColorType;
-                    dst.ColorValue = src.ColorValue;
-                }
-            }
-        }
-
-    }
-
-    public class DebugOutputSettingViewDataContext : ObservableObject
-    {
-        public DebugOutputSettingViewDataContext()
-        {
-        }
-
-        public LogLevelList LevelItems { get; set; } = new LogLevelList();
-
-    }
 
     public class LogSettings : ICloneable
     {
@@ -168,23 +168,25 @@ namespace DebugOutput
         public List<RegexCaptureOrderItem> TypeOrders { get; set; }
         public List<LogLevelItem> CustomLevels { get; set; }
 
-        public int OrderTime => TypeOrders.IndexOf(TypeOrders.Where(x => x.Name == "DateTime").FirstOrDefault());
-        public int OrderLevel => TypeOrders.IndexOf(TypeOrders.Where(x => x.Name == "Level").FirstOrDefault());
-        public int OrderText => TypeOrders.IndexOf(TypeOrders.Where(x => x.Name == "Text").FirstOrDefault());
-        public int OrderFile => TypeOrders.IndexOf(TypeOrders.Where(x => x.Name == "File").FirstOrDefault());
-        public int OrderLine => TypeOrders.IndexOf(TypeOrders.Where(x => x.Name == "Line").FirstOrDefault());
-
+        public int OrderTime => GetTypeOrder("DateTime");
+        public int OrderLevel => GetTypeOrder("Level");
+        public int OrderThread => GetTypeOrder("Thread");
+        public int OrderText => GetTypeOrder("Text");
+        public int OrderFile => GetTypeOrder("File");
+        public int OrderLine => GetTypeOrder("Line");
+        int GetTypeOrder(string typeName) => TypeOrders.IndexOf(TypeOrders.Where(x => x.Name == typeName).FirstOrDefault());
 
         public static readonly LogSettings Default = new LogSettings
         {
-            CaptureRegex = @"\[(.+?)\] \[(.+?)\] (.+) (.+?)\(([\d]+)\)",
+            CaptureRegex = @"\[(.+?)\] \[(.+?)\] \[(.+?)\] (.+) (.+?)\(([\d]+)\)",
             TypeOrders = new List<RegexCaptureOrderItem>
             {
                 new RegexCaptureOrderItem{ Name="DateTime", Order=0},
                 new RegexCaptureOrderItem{ Name="Level", Order=1},
-                new RegexCaptureOrderItem{ Name="Text", Order=2},
-                new RegexCaptureOrderItem{ Name="File", Order=3},
-                new RegexCaptureOrderItem{ Name="Line", Order=4},
+                new RegexCaptureOrderItem{ Name="Thread", Order=2},
+                new RegexCaptureOrderItem{ Name="Text", Order=3},
+                new RegexCaptureOrderItem{ Name="File", Order=4},
+                new RegexCaptureOrderItem{ Name="Line", Order=5},
             },
             CustomLevels = new List<LogLevelItem>
             {
@@ -205,5 +207,4 @@ namespace DebugOutput
             return newSettings;
         }
     }
-
 }

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="DebugOutput.DebugOutputWindowControl"
+﻿<UserControl x:Class="DebugOutput.DebugOutputControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -36,8 +36,14 @@
             </ListView.ItemContainerStyle>
             <ListView.View>
                 <GridView>
+                    <GridView.ColumnHeaderContainerStyle>
+                        <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource {x:Type GridViewColumnHeader}}">
+                            <Setter Property="Visibility" Value="{Binding HeaderVisibility}" />
+                        </Style>
+                    </GridView.ColumnHeaderContainerStyle>
                     <GridViewColumn Header="DateTime" DisplayMemberBinding="{Binding Time}" Width="100"/>
                     <GridViewColumn Header="Level" DisplayMemberBinding="{Binding Level}" Width="50"/>
+                    <GridViewColumn Header="Thread" DisplayMemberBinding="{Binding Thread}" Width="50"/>
                     <GridViewColumn Header="Text" DisplayMemberBinding="{Binding Text}" Width="300"/>
                     <GridViewColumn Header="File" DisplayMemberBinding="{Binding File}" Width="100"/>
                     <GridViewColumn Header="Line" DisplayMemberBinding="{Binding Line}" Width="50"/>

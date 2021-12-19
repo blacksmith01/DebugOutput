@@ -24,10 +24,14 @@ namespace DebugOutput
     /// Interaction logic for DebugOutputWindowControl.
     /// </summary>
     /// 
-    public partial class DebugOutputWindowControl : UserControl
+    public partial class DebugOutputControl : UserControl
     {
         DebugOutputPackage MyPackage => DebugOutputPackage.Instance;
         DebugOutputViewDataContext MyDataContext => DataContext as DebugOutputViewDataContext;
+
+        Dictionary<string, string> _currentFilters = new Dictionary<string, string>();
+        List<OutputViewItem> _fullItemList = new List<OutputViewItem>();
+
         IVsWritableSettingsStore SettingsStore => MyPackage.SettingsStore;
 
         bool loadedState = false;
@@ -35,13 +39,14 @@ namespace DebugOutput
         string captureRegex;
         int orderTime;
         int orderLevel;
+        int orderThread;
         int orderText;
         int orderFile;
         int orderLine;
 
         Dictionary<string, SolidColorBrush> levelColors = new Dictionary<string, SolidColorBrush>();
 
-        public DebugOutputWindowControl()
+        public DebugOutputControl()
         {
             this.InitializeComponent();
 
@@ -64,6 +69,11 @@ namespace DebugOutput
                 viewCol.Width = col.Width;
             }
 
+            if (MyDataContext.HeaderVisibility != settings.HeaderVisibility)
+            {
+                MyDataContext.ToggleVisibility();
+            }
+
             return true;
         }
 
@@ -73,6 +83,7 @@ namespace DebugOutput
 
             orderTime = logSettings.OrderTime;
             orderLevel = logSettings.OrderLevel;
+            orderThread = logSettings.OrderThread;
             orderText = logSettings.OrderText;
             orderFile = logSettings.OrderFile;
             orderLine = logSettings.OrderLine;
@@ -88,6 +99,7 @@ namespace DebugOutput
                 {
                     item.Time = result.Groups[1 + orderTime].Value;
                     item.Level = result.Groups[1 + orderLevel].Value;
+                    item.Thread = result.Groups[1 + orderThread].Value;
                     item.Text = result.Groups[1 + orderText].Value;
                     item.File = result.Groups[1 + orderFile].Value;
                     item.Line = int.Parse(result.Groups[1 + orderLine].Value);
@@ -119,6 +131,7 @@ namespace DebugOutput
             var columns = (logListView.View as GridView).Columns;
             var settings = new OutputViewSettings
             {
+                HeaderVisibility = MyDataContext.HeaderVisibility,
                 Columns = columns.Select(x => new OutputViewColumnInfo
                 {
                     Name = x.Header.ToString(),
@@ -127,14 +140,7 @@ namespace DebugOutput
                 }).ToList()
             };
 
-            var json = JsonConvert.SerializeObject(settings);
-
-            SettingsStore.CollectionExists("UserSettings", out var exists);
-            if (exists == 0)
-            {
-                SettingsStore.CreateCollection("UserSettings");
-            }
-            var result2 = SettingsStore.SetString("UserSettings", nameof(OutputViewSettings), json);
+            MyPackage.SaveUserSettings(settings);
         }
 
         void ClearItems()
@@ -143,23 +149,31 @@ namespace DebugOutput
             MyDataContext.LastEndLine = 0;
         }
 
+        void UpdateItems()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            UpdateItems((MyPackage.dte.Windows.Item(EnvDTE.Constants.vsWindowKindOutput).Object as EnvDTE.OutputWindow).OutputWindowPanes.Item("Debug"));
+        }
+
         void UpdateItems(OutputWindowPane pane)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            Debug.WriteLine($"[UpdateItems]");
-
             try
             {
-                TextDocument document = pane.TextDocument;
+                if (pane == null)
+                {
+                    return;
+                }
 
+                var document = pane.TextDocument;
                 var lineStart = document.StartPoint.Line;
                 var lineEnd = document.EndPoint.Line;
 
                 string addText = string.Empty;
                 if (MyDataContext.LastEndLine >= lineEnd)
                 {
-                    Debug.WriteLine($"[UpdateItems] {MyDataContext.LastEndLine}>={lineEnd}");
                     return;
                 }
                 else if (MyDataContext.LastEndLine == 0)
@@ -174,9 +188,6 @@ namespace DebugOutput
                 }
                 MyDataContext.LastEndLine = lineEnd;
 
-                Debug.WriteLine($"[UpdateItems] {addText}");
-
-
                 var logSettings = MyPackage.SettingsLog;
 
                 var lines = addText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).Where(a => !string.IsNullOrEmpty(a));
@@ -184,32 +195,108 @@ namespace DebugOutput
                 foreach (var l in lines)
                 {
                     var result = Regex.Match(l, captureRegex);
-                    if (result.Success && result.Groups.Count == 6)
+                    if (result.Success && result.Groups.Count == 7)
                     {
                         var newItem = new OutputViewItem
                         {
                             FullText = l,
                             Time = result.Groups[1 + orderTime].Value,
                             Level = result.Groups[1 + orderLevel].Value,
+                            Thread = result.Groups[1 + orderThread].Value,
                             Text = result.Groups[1 + orderText].Value,
                             File = result.Groups[1 + orderFile].Value,
                             Line = int.Parse(result.Groups[1 + orderLine].Value),
                         };
-                        MyDataContext.Items.Add(newItem);
 
+                        if (_currentFilters.Any())
+                        {
+                            _fullItemList.Add(newItem);
+                            if (CheckItemFilter(newItem))
+                            {
+                                MyDataContext.Items.Add(newItem);
+                            }
+                        }
+                        else
+                        {
+                            MyDataContext.Items.Add(newItem);
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                string.Format(System.Globalization.CultureInfo.CurrentUICulture, "{0}", ex.ToString()), "Error");
+                //MessageBox.Show(
+                //string.Format(System.Globalization.CultureInfo.CurrentUICulture, "{0}", ex.ToString()), "Error");
             }
         }
 
         public void ToggleHeaderVisibility()
         {
             MyDataContext.ToggleVisibility();
+        }
+
+        public void SetFilter(Dictionary<string, string> newFilters)
+        {
+            if (!newFilters.Any())
+            {
+                return;
+            }
+
+            _currentFilters = new Dictionary<string, string>(newFilters);
+            if(!_fullItemList.Any())
+            {
+                _fullItemList.Clear();
+                foreach (var item in MyDataContext.Items)
+                {
+                    _fullItemList.Add(item);
+                }
+            }
+            MyDataContext.Items.Clear();
+            foreach (var item in _fullItemList)
+            {
+                if (CheckItemFilter(item))
+                {
+                    MyDataContext.Items.Add(item);
+                }
+            }
+        }
+        public void ClearFilter()
+        {
+            if (_currentFilters.Any())
+            {
+                _currentFilters.Clear();
+                MyDataContext.Items.Clear();
+                foreach (var item in _fullItemList)
+                {
+                    MyDataContext.Items.Add(item);
+                }
+                _fullItemList.Clear();
+            }
+        }
+
+        bool CheckItemFilter(OutputViewItem item)
+        {
+            if (_currentFilters.ContainsKey("Level") && item.Level.IndexOf(_currentFilters["Level"], StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return false;
+            }
+            
+            if (_currentFilters.ContainsKey("Text") && item.Text.IndexOf(_currentFilters["Text"], StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return false;
+            }
+            
+            if (_currentFilters.ContainsKey("Thread") && item.Thread.IndexOf(_currentFilters["Thread"], StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return false;
+            }
+            
+            if (_currentFilters.ContainsKey("File") && item.File.IndexOf(_currentFilters["File"], StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         void DteEvent_OutputClearing(OutputWindowPane pane)
@@ -273,25 +360,20 @@ namespace DebugOutput
 
             if (MyPackage.IsDebugging)
             {
-                Debug.WriteLine($"[GuiEvent_Loaded] clear by debugging");
-
                 ClearItems();
-                UpdateItems(MyPackage.DebugOutputPane);
+                UpdateItems();
             }
             else
             {
                 if (loaedCount > 1)
                 {
-                    UpdateItems(MyPackage.DebugOutputPane);
+                    UpdateItems();
                 }
-                Debug.WriteLine($"[GuiEvent_Loaded] not debugging");
             }
         }
 
         private void GuiEvent_Unloaded(object sender, RoutedEventArgs e)
         {
-            Debug.WriteLine("[GuiEvent_Unloaded]");
-
             MyPackage.outputWindowEvents.PaneUpdated -= DteEvent_OutputUpdated;
             MyPackage.outputWindowEvents.PaneClearing -= DteEvent_OutputClearing;
             MyPackage.solutionEvents.BeforeClosing -= DteEvent_SolutionBeforeClosing;
@@ -307,6 +389,47 @@ namespace DebugOutput
                 return;
 
             UpdateTextColor_ByLogLevelType(viewItem, MyDataContext.Items[index]);
+        }
+    }
+
+    public class OutputViewItem
+    {
+        public string FullText { get; set; }
+        public string Time { get; set; }
+        public string Level { get; set; }
+        public string Thread { get; set; }
+        public string Text { get; set; }
+        public string File { get; set; }
+        public int Line { get; set; }
+    }
+    public class OutputViewList : ObservableCollection<OutputViewItem>
+    {
+
+    }
+
+    public class DebugOutputViewDataContext : ObservableObject
+    {
+        public DebugOutputViewDataContext()
+        {
+        }
+
+        public OutputViewList Items { get; set; } = new OutputViewList();
+        public Visibility HeaderVisibility { get; set; } = Visibility.Visible;
+
+        public string LastTextAll;
+        public int LastEndLine { get; set; }
+
+        public void ToggleVisibility()
+        {
+            if (HeaderVisibility == Visibility.Visible)
+            {
+                HeaderVisibility = Visibility.Collapsed;
+            }
+            else
+            {
+                HeaderVisibility = Visibility.Visible;
+            }
+            NotifyPropertyChanged(nameof(HeaderVisibility));
         }
     }
 }

@@ -62,12 +62,12 @@
           <ButtonText>DebugOutputWindow</ButtonText>
         </Strings>
       </Button>
-      <Button guid="guidDebugOutputPackageCmdSet" id="cmdidDebugOutputSettingWindowCommand" priority="0x0100" type="Button">
+      <Button guid="guidDebugOutputPackageCmdSet" id="cmdidLogSettingWindowCommand" priority="0x0100" type="Button">
         <Parent guid="guidVSDebugGroup" id="IDG_DEBUG_WINDOWS_GENERAL" />
         <Icon guid="ImageCatalogGuid" id="Settings" />
 		  <CommandFlag>IconIsMoniker</CommandFlag>
 		  <Strings>
-          <ButtonText>DebugOutputSettingWindow</ButtonText>
+          <ButtonText>LogSettingWindow</ButtonText>
         </Strings>
       </Button>
 
@@ -127,7 +127,7 @@
 	  <!-- This is the guid used to group the menu commands together -->
 	  <GuidSymbol name="guidDebugOutputPackageCmdSet" value="{a6d24558-6c2f-4d54-afcb-3870618a6daf}">
 		<IDSymbol value="0x0010" name="cmdidDebugOutputWindowCommand" />
-	    <IDSymbol value="0x0020" name="cmdidDebugOutputSettingWindowCommand" />
+	    <IDSymbol value="0x0020" name="cmdidLogSettingWindowCommand" />
 		<IDSymbol value="0x0100" name="cmdidDebugOutput_Toolbar" />
 		<IDSymbol value="0x0110" name="cmdidDebugOutput_ToolbarGroupGeneral" />
 		<IDSymbol value="0x0120" name="OpenSettings" />

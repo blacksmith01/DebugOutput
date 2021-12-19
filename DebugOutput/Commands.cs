@@ -87,7 +87,7 @@ namespace DebugOutput
 
         protected override async Task ExecuteAsync(object sender, EventArgs e)
         {
-            ToolWindowPane window = await MyPackage.ShowToolWindowAsync(typeof(DebugOutputSettingWindow), 0, true, MyPackage.DisposalToken);
+            ToolWindowPane window = await MyPackage.ShowToolWindowAsync(typeof(LogSettingWindow), 0, true, MyPackage.DisposalToken);
             if ((null == window) || (null == window.Frame))
             {
                 throw new NotSupportedException("Cannot create tool window");
@@ -104,7 +104,7 @@ namespace DebugOutput
 
         protected async override Task ExecuteAsync(object sender, EventArgs e)
         {
-            await MyPackage.ShowToolWindowAsync<DebugOutputSettingWindow>();
+            await MyPackage.ShowToolWindowAsync<LogSettingWindow>();
         }
     }
 
@@ -143,7 +143,7 @@ namespace DebugOutput
             var window = MyPackage.FindToolWindow(typeof(DebugOutputWindow), 0, true);
             if ((null != window) && (null != window.Frame))
             {
-                var ctrl = window.Content as DebugOutputWindowControl;
+                var ctrl = window.Content as DebugOutputControl;
                 ctrl.ToggleHeaderVisibility();
             }
         }

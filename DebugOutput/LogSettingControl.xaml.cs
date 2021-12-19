@@ -8,15 +8,16 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Microsoft.VisualStudio.PlatformUI;
 
 namespace DebugOutput
 {
-    public partial class DebugOutputSettingWindowControl : UserControl
+    public partial class LogSettingControl : UserControl
     {
         DebugOutputPackage MyPackage => DebugOutputPackage.Instance;
         DebugOutputSettingViewDataContext MyDataContext => DataContext as DebugOutputSettingViewDataContext;
 
-        public DebugOutputSettingWindowControl()
+        public LogSettingControl()
         {
             this.InitializeComponent();
 
@@ -82,7 +83,7 @@ namespace DebugOutput
             var window = MyPackage.FindToolWindow(typeof(DebugOutputWindow), 0, true);
             if ((null != window) && (null != window.Frame))
             {
-                var ctrl = window.Content as DebugOutputWindowControl;
+                var ctrl = window.Content as DebugOutputControl;
                 ctrl.ApplyLogSettings(settings);
             }
         }
@@ -97,7 +98,7 @@ namespace DebugOutput
             var window = MyPackage.FindToolWindow(typeof(DebugOutputWindow), 0, true);
             if ((null != window) && (null != window.Frame))
             {
-                var ctrl = window.Content as DebugOutputWindowControl;
+                var ctrl = window.Content as DebugOutputControl;
                 ctrl.ApplyLogSettings(LogSettings.Default);
             }
         }
@@ -125,5 +126,43 @@ namespace DebugOutput
             listBox.Items.Insert(selectedIndex + 1, itemToMoveDown);
             listBox.SelectedIndex = selectedIndex + 1;
         }
+    }
+
+    public class LogLevelList : ObservableCollection<LogLevelItem>
+    {
+        public void Assign(List<LogLevelItem> newList)
+        {
+            if (Count != newList.Count)
+            {
+                Clear();
+
+                foreach (var e in newList)
+                {
+                    Add(e.Clone() as LogLevelItem);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < Count; i++)
+                {
+                    var src = newList[i];
+                    var dst = this[i];
+                    dst.Name = src.Name;
+                    dst.Match = src.Match;
+                    dst.ColorType = src.ColorType;
+                    dst.ColorValue = src.ColorValue;
+                }
+            }
+        }
+
+    }
+
+    public class DebugOutputSettingViewDataContext : ObservableObject
+    {
+        public DebugOutputSettingViewDataContext()
+        {
+        }
+
+        public LogLevelList LevelItems { get; set; } = new LogLevelList();
     }
 }
