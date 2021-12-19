@@ -59,7 +59,7 @@
         <Icon guid="ImageCatalogGuid" id="Output" />
 		  <CommandFlag>IconIsMoniker</CommandFlag>
 		  <Strings>
-          <ButtonText>DebugOutputWindow</ButtonText>
+          <ButtonText>DebugOutput</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidDebugOutputPackageCmdSet" id="cmdidLogSettingWindowCommand" priority="0x0100" type="Button">
@@ -67,7 +67,7 @@
         <Icon guid="ImageCatalogGuid" id="Settings" />
 		  <CommandFlag>IconIsMoniker</CommandFlag>
 		  <Strings>
-          <ButtonText>LogSettingWindow</ButtonText>
+          <ButtonText>DebugOutputSettings</ButtonText>
         </Strings>
       </Button>
 
