@@ -44,6 +44,7 @@
                     <GridViewColumn Header="DateTime" DisplayMemberBinding="{Binding Time}" Width="100"/>
                     <GridViewColumn Header="Level" DisplayMemberBinding="{Binding Level}" Width="50"/>
                     <GridViewColumn Header="Thread" DisplayMemberBinding="{Binding Thread}" Width="50"/>
+                    <GridViewColumn Header="Category" DisplayMemberBinding="{Binding Category}" Width="50"/>
                     <GridViewColumn Header="Text" DisplayMemberBinding="{Binding Text}" Width="300"/>
                     <GridViewColumn Header="File" DisplayMemberBinding="{Binding File}" Width="100"/>
                     <GridViewColumn Header="Line" DisplayMemberBinding="{Binding Line}" Width="50"/>

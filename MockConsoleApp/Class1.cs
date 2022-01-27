@@ -10,8 +10,8 @@ namespace MockConsoleApp
     {
         public static void DoSomthing()
         {
-            Logger.Log(LogLevel.Warning, "DoSomthing-Warn");
-            Logger.Log(LogLevel.Error, "DoSomthing-Error");
+            Logger.Log(LogLevel.Warning, "Class1", "DoSomthing-Warn");
+            Logger.Log(LogLevel.Error, "Class1", "DoSomthing-Error");
         }
     }
 }

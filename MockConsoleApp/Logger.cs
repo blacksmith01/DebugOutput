@@ -48,14 +48,14 @@ namespace MockConsoleApp
 
     public class Logger
     {
-        // \[(.+?)\] \[(.+?)\] \[(.+?)\] (.+) (.+?)\(([\d]+)\)
-        // [DateTime] [Level] [Thread] Text File(Line)
-        public static void Log(LogLevel level, string message, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+        // \[(.+?)\] \[(.+?)\] \[(.+?)\] \[(.+?)\] (.+) (.+?)\(([\d]+)\)
+        // [DateTime] [Level] [Thread] [Category] Text File(Line)
+        public static void Log(LogLevel level, string category, string message, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
             var now = DateTime.Now;
             var threadId = Thread.CurrentThread.ManagedThreadId;
-            Console.WriteLine($"[{now}] [{level}] [{threadId}] {message}");
-            Debug.WriteLine($"[{now}] [{level}] [{threadId}] {message} {Path.GetFileName(file)}({line})");
+            Console.WriteLine($"[{now}] [{level}] [{threadId}] [{category}] {message}");
+            Debug.WriteLine($"[{now}] [{level}] [{threadId}] [{category}] {message} {Path.GetFileName(file)}({line})");
         }
     }
 }

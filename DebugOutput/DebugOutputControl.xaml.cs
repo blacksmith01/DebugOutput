@@ -40,6 +40,7 @@ namespace DebugOutput
         int orderTime;
         int orderLevel;
         int orderThread;
+        int orderCategory;
         int orderText;
         int orderFile;
         int orderLine;
@@ -84,6 +85,7 @@ namespace DebugOutput
             orderTime = logSettings.OrderTime;
             orderLevel = logSettings.OrderLevel;
             orderThread = logSettings.OrderThread;
+            orderCategory = logSettings.OrderCategory;
             orderText = logSettings.OrderText;
             orderFile = logSettings.OrderFile;
             orderLine = logSettings.OrderLine;
@@ -100,6 +102,7 @@ namespace DebugOutput
                     item.Time = result.Groups[1 + orderTime].Value;
                     item.Level = result.Groups[1 + orderLevel].Value;
                     item.Thread = result.Groups[1 + orderThread].Value;
+                    item.Category = result.Groups[1 + orderCategory].Value;
                     item.Text = result.Groups[1 + orderText].Value;
                     item.File = result.Groups[1 + orderFile].Value;
                     item.Line = int.Parse(result.Groups[1 + orderLine].Value);
@@ -195,7 +198,7 @@ namespace DebugOutput
                 foreach (var l in lines)
                 {
                     var result = Regex.Match(l, captureRegex);
-                    if (result.Success && result.Groups.Count == 7)
+                    if (result.Success && result.Groups.Count == LogSettings.Default.TypeOrders.Count+1)
                     {
                         var newItem = new OutputViewItem
                         {
@@ -203,6 +206,7 @@ namespace DebugOutput
                             Time = result.Groups[1 + orderTime].Value,
                             Level = result.Groups[1 + orderLevel].Value,
                             Thread = result.Groups[1 + orderThread].Value,
+                            Category = result.Groups[1 + orderCategory].Value,
                             Text = result.Groups[1 + orderText].Value,
                             File = result.Groups[1 + orderFile].Value,
                             Line = int.Parse(result.Groups[1 + orderLine].Value),
@@ -290,7 +294,12 @@ namespace DebugOutput
             {
                 return false;
             }
-            
+
+            if (_currentFilters.ContainsKey("Category") && item.Category.IndexOf(_currentFilters["Category"], StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return false;
+            }
+
             if (_currentFilters.ContainsKey("File") && item.File.IndexOf(_currentFilters["File"], StringComparison.OrdinalIgnoreCase) < 0)
             {
                 return false;
@@ -398,6 +407,7 @@ namespace DebugOutput
         public string Time { get; set; }
         public string Level { get; set; }
         public string Thread { get; set; }
+        public string Category { get; set; }
         public string Text { get; set; }
         public string File { get; set; }
         public int Line { get; set; }

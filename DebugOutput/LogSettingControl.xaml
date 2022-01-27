@@ -43,6 +43,7 @@
                     <ListBoxItem Content="DateTime"/>
                     <ListBoxItem Content="Level"/>
                     <ListBoxItem Content="Thread"/>
+                    <ListBoxItem Content="Category"/>
                     <ListBoxItem Content="Text"/>
                     <ListBoxItem Content="File"/>
                     <ListBoxItem Content="Line"/>

@@ -20,7 +20,9 @@ namespace DebugOutput
             SettingsStore = WindowsExtensions.GetWritableSettingStore();
 
             SettingsView = LoadUserSettings(OutputViewSettings.Default);
+            SettingsView.Validate();
             SettingsLog = LoadUserSettings(LogSettings.Default);
+            SettingsLog.Validate();
         }
 
         public void SaveUserSettings<T>(string json)

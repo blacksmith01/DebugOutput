@@ -81,7 +81,16 @@ namespace DebugOutput
 
         public override void ProvideSearchSettings(IVsUIDataSource pSearchSettings)
         {
-            Utilities.SetValue(pSearchSettings, SearchSettingsDataSource.SearchWatermarkProperty.Name, "Level:, Text:, Thread:, File:");
+            //Utilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.ControlMinWidth, 100);
+            try
+            {
+                Utilities.SetValue(pSearchSettings, SearchSettingsDataSource.PropertyNames.ControlMaxWidth, uint.MaxValue);
+            }
+            catch
+            {
+
+            }
+            Utilities.SetValue(pSearchSettings, SearchSettingsDataSource.SearchWatermarkProperty.Name, "Level:, Text:, Thread:, Category:, File:");
             Utilities.SetValue(pSearchSettings, SearchSettingsDataSource.SearchStartTypeProperty.Name, (uint)VSSEARCHSTARTTYPE.SST_ONDEMAND);
         }
 
@@ -93,7 +102,7 @@ namespace DebugOutput
 
     public class OutputFilterTask : VsSearchTask
     {
-        readonly string[] _filterNames = new string[] { "Level", "Text", "Thread", "File" };
+        readonly string[] _filterNames = new string[] { "Level", "Text", "Thread", "Category", "File" };
         DebugOutputWindow _window;
         public OutputFilterTask(uint dwCookie, IVsSearchQuery pSearchQuery, IVsSearchCallback pSearchCallback, DebugOutputWindow window) : base(dwCookie, pSearchQuery, pSearchCallback)
         {

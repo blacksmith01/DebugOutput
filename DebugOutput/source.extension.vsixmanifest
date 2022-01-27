@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="DebugOutput.ebcc470e-a9b8-4c19-a506-0897bab33bd3" Version="0.7.1" Language="en-US" Publisher="BlackSmith01" />
+        <Identity Id="DebugOutput.ebcc470e-a9b8-4c19-a506-0897bab33bd3" Version="0.7.2" Language="en-US" Publisher="BlackSmith01" />
         <DisplayName>DebugOutput</DisplayName>
         <Description xml:space="preserve">Debug Output Window Using Listview</Description>
     </Metadata>

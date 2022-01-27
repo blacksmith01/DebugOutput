@@ -18,7 +18,7 @@ namespace DebugOutput
 
         public object Clone()
         {
-            return MemberwiseClone();
+            return MemberwiseClone() as OutputViewColumnInfo;
         }
     }
     public class OutputViewSettings : ICloneable
@@ -33,9 +33,10 @@ namespace DebugOutput
                 new OutputViewColumnInfo { Name = "DateTime", Order = 0, Width = 100 },
                 new OutputViewColumnInfo { Name = "Level", Order = 1, Width = 50 },
                 new OutputViewColumnInfo { Name = "Thread", Order = 2, Width = 50 },
-                new OutputViewColumnInfo { Name = "Text", Order = 3, Width = 300 },
-                new OutputViewColumnInfo { Name = "File", Order = 4, Width = 100 },
-                new OutputViewColumnInfo { Name = "Line", Order = 5, Width = 50 },
+                new OutputViewColumnInfo { Name = "Category", Order = 3, Width = 50 },
+                new OutputViewColumnInfo { Name = "Text", Order = 4, Width = 300 },
+                new OutputViewColumnInfo { Name = "File", Order = 5, Width = 100 },
+                new OutputViewColumnInfo { Name = "Line", Order = 6, Width = 50 },
             }
         };
         public static readonly string DefaultSerialized = JsonConvert.SerializeObject(Default);
@@ -45,6 +46,56 @@ namespace DebugOutput
             var obj = MemberwiseClone() as OutputViewSettings;
             obj.Columns = Columns.Select(x => x.Clone() as OutputViewColumnInfo).ToList();
             return obj;
+        }
+        public void Validate()
+        {
+            if (Columns == null)
+            {
+                Columns = new List<OutputViewColumnInfo>();
+            }
+            foreach (var colName in Default.Columns.Select(x => x.Name))
+            {
+                var exists = Columns.Where(x => x.Name == colName);
+                if (!exists.Any())
+                {
+                    var remainSlots = FindRemainOrderSlots();
+                    if (remainSlots.Any())
+                    {
+                        var newCol = Default.Columns.Where(x => x.Name == colName).First().Clone() as OutputViewColumnInfo;
+                        newCol.Order = remainSlots.First();
+                        Columns.Add(newCol);
+                    }
+                }
+                else if (exists.Count() > 1)
+                {
+                    var remain = exists.First();
+                    Columns.RemoveAll(x => x.Name == colName && x != remain);
+                }
+            }
+
+            if (FindRemainOrderSlots().Length > 0)
+            {
+                var allocateSlots = Default.Columns.Select(x => x.Order).ToArray();
+                foreach (var col in Columns)
+                {
+                    if (col.Order < 0 || col.Order >= allocateSlots.Length || allocateSlots[col.Order] < 0)
+                    {
+                        col.Order = FindRemainOrderSlots().First();
+                    }
+                }
+            }
+        }
+        public int[] FindRemainOrderSlots()
+        {
+            var remainSlots = Enumerable.Range(0, Default.Columns.Count()).ToArray();
+            foreach (var col in Columns)
+            {
+                if (col.Order >= 0 && col.Order < remainSlots.Length)
+                {
+                    remainSlots[col.Order] = -1;
+                }
+            }
+            return remainSlots.Where(x => x >= 0).ToArray();
         }
     }
 
@@ -171,6 +222,7 @@ namespace DebugOutput
         public int OrderTime => GetTypeOrder("DateTime");
         public int OrderLevel => GetTypeOrder("Level");
         public int OrderThread => GetTypeOrder("Thread");
+        public int OrderCategory => GetTypeOrder("Category");
         public int OrderText => GetTypeOrder("Text");
         public int OrderFile => GetTypeOrder("File");
         public int OrderLine => GetTypeOrder("Line");
@@ -178,15 +230,16 @@ namespace DebugOutput
 
         public static readonly LogSettings Default = new LogSettings
         {
-            CaptureRegex = @"\[(.+?)\] \[(.+?)\] \[(.+?)\] (.+) (.+?)\(([\d]+)\)",
+            CaptureRegex = @"\[(.+?)\] \[(.+?)\] \[(.+?)\] \[(.+?)\] (.+) (.+?)\(([\d]+)\)",
             TypeOrders = new List<RegexCaptureOrderItem>
             {
                 new RegexCaptureOrderItem{ Name="DateTime", Order=0},
                 new RegexCaptureOrderItem{ Name="Level", Order=1},
                 new RegexCaptureOrderItem{ Name="Thread", Order=2},
-                new RegexCaptureOrderItem{ Name="Text", Order=3},
-                new RegexCaptureOrderItem{ Name="File", Order=4},
-                new RegexCaptureOrderItem{ Name="Line", Order=5},
+                new RegexCaptureOrderItem{ Name="Category", Order=3},
+                new RegexCaptureOrderItem{ Name="Text", Order=4},
+                new RegexCaptureOrderItem{ Name="File", Order=5},
+                new RegexCaptureOrderItem{ Name="Line", Order=6},
             },
             CustomLevels = new List<LogLevelItem>
             {
@@ -205,6 +258,56 @@ namespace DebugOutput
             newSettings.TypeOrders = TypeOrders.Select(x => x.Clone() as RegexCaptureOrderItem).ToList();
             newSettings.CustomLevels = CustomLevels.Select(x => x.Clone() as LogLevelItem).ToList();
             return newSettings;
+        }
+        public void Validate()
+        {
+            if (TypeOrders == null)
+            {
+                TypeOrders = new List<RegexCaptureOrderItem>();
+            }
+            foreach (var colName in Default.TypeOrders.Select(x => x.Name))
+            {
+                var exists = TypeOrders.Where(x => x.Name == colName);
+                if (!exists.Any())
+                {
+                    var remainSlots = FindRemainOrderSlots();
+                    if (remainSlots.Any())
+                    {
+                        var newCol = Default.TypeOrders.Where(x => x.Name == colName).First().Clone() as RegexCaptureOrderItem;
+                        newCol.Order = remainSlots.First();
+                        TypeOrders.Add(newCol);
+                    }
+                }
+                else if (exists.Count() > 1)
+                {
+                    var remain = exists.First();
+                    TypeOrders.RemoveAll(x => x.Name == colName && x != remain);
+                }
+            }
+
+            if (FindRemainOrderSlots().Length > 0)
+            {
+                var allocateSlots = Default.TypeOrders.Select(x => x.Order).ToArray();
+                foreach (var col in TypeOrders)
+                {
+                    if (col.Order < 0 || col.Order >= allocateSlots.Length || allocateSlots[col.Order] < 0)
+                    {
+                        col.Order = FindRemainOrderSlots().First();
+                    }
+                }
+            }
+        }
+        public int[] FindRemainOrderSlots()
+        {
+            var remainSlots = Enumerable.Range(0, Default.TypeOrders.Count()).ToArray();
+            foreach (var col in TypeOrders)
+            {
+                if (col.Order >= 0 && col.Order < remainSlots.Length)
+                {
+                    remainSlots[col.Order] = -1;
+                }
+            }
+            return remainSlots.Where(x => x >= 0).ToArray();
         }
     }
 }
