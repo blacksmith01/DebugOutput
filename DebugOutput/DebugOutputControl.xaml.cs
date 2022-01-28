@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -15,6 +16,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -31,7 +33,7 @@ namespace DebugOutput
 
         Dictionary<string, string> _currentFilters = new Dictionary<string, string>();
         List<OutputViewItem> _fullItemList = new List<OutputViewItem>();
-
+        ScrollViewer _sv = null;
         IVsWritableSettingsStore SettingsStore => MyPackage.SettingsStore;
 
         bool loadedState = false;
@@ -47,12 +49,57 @@ namespace DebugOutput
 
         Dictionary<string, SolidColorBrush> levelColors = new Dictionary<string, SolidColorBrush>();
 
+        double _scrollVerticalOffset;
+        double _scrollExtentHeight;
+        double _scrollViewportHeight;
+
+
         public DebugOutputControl()
         {
             this.InitializeComponent();
 
             ApplyViewSettings(MyPackage.SettingsView);
             ApplyLogSettings(MyPackage.SettingsLog);
+
+            ((INotifyCollectionChanged)logListView.Items).CollectionChanged += DebugOutputControl_CollectionChanged;
+            logGrid.Loaded += LogGrid_Loaded;
+        }
+
+        private void LogGrid_Loaded(object sender, RoutedEventArgs e)
+        {
+            _sv = GetScrollViewer(logGrid) as ScrollViewer;
+        }
+
+        DependencyObject GetScrollViewer(DependencyObject o)
+        {
+            if (o is ScrollViewer)
+            {
+                return o;
+            }
+
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(o); i++)
+            {
+                var child = VisualTreeHelper.GetChild(o, i);
+
+                var result = GetScrollViewer(child);
+                if (result == null)
+                {
+                    continue;
+                }
+                else
+                {
+                    return result;
+                }
+            }
+            return null;
+        }
+
+        private void DebugOutputControl_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (_sv != null && IsStickedToBottom())
+            {
+                GoToBottom();
+            }
         }
 
         bool ApplyViewSettings(OutputViewSettings settings)
@@ -80,6 +127,9 @@ namespace DebugOutput
 
         public void ApplyLogSettings(LogSettings logSettings)
         {
+            MyDataContext.FontFamily = logSettings.FontFamily;
+            MyDataContext.FontSize = logSettings.FontSize;
+
             captureRegex = logSettings.CaptureRegex;
 
             orderTime = logSettings.OrderTime;
@@ -198,7 +248,7 @@ namespace DebugOutput
                 foreach (var l in lines)
                 {
                     var result = Regex.Match(l, captureRegex);
-                    if (result.Success && result.Groups.Count == LogSettings.Default.TypeOrders.Count+1)
+                    if (result.Success && result.Groups.Count == LogSettings.Default.TypeOrders.Count + 1)
                     {
                         var newItem = new OutputViewItem
                         {
@@ -238,6 +288,17 @@ namespace DebugOutput
         {
             MyDataContext.ToggleVisibility();
         }
+        public void GoToBottom()
+        {
+            if (_sv != null)
+            {
+                int maxCount = logListView.Items.Count;
+                if (maxCount > 0)
+                {
+                    _sv?.ScrollToBottom();
+                }
+            }
+        }
 
         public void SetFilter(Dictionary<string, string> newFilters)
         {
@@ -247,7 +308,7 @@ namespace DebugOutput
             }
 
             _currentFilters = new Dictionary<string, string>(newFilters);
-            if(!_fullItemList.Any())
+            if (!_fullItemList.Any())
             {
                 _fullItemList.Clear();
                 foreach (var item in MyDataContext.Items)
@@ -284,12 +345,12 @@ namespace DebugOutput
             {
                 return false;
             }
-            
+
             if (_currentFilters.ContainsKey("Text") && item.Text.IndexOf(_currentFilters["Text"], StringComparison.OrdinalIgnoreCase) < 0)
             {
                 return false;
             }
-            
+
             if (_currentFilters.ContainsKey("Thread") && item.Thread.IndexOf(_currentFilters["Thread"], StringComparison.OrdinalIgnoreCase) < 0)
             {
                 return false;
@@ -399,6 +460,16 @@ namespace DebugOutput
 
             UpdateTextColor_ByLogLevelType(viewItem, MyDataContext.Items[index]);
         }
+
+        bool IsScrolledBottom() => (_scrollVerticalOffset - (_scrollExtentHeight - _scrollViewportHeight) >= -0.0000001);
+        bool IsStickedToBottom() => IsScrolledBottom();
+        private void OnScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            //e.VerticalChange;
+            _scrollVerticalOffset = e.VerticalOffset;
+            _scrollViewportHeight = e.ViewportHeight;
+            _scrollExtentHeight = e.ExtentHeight;
+        }
     }
 
     public class OutputViewItem
@@ -428,7 +499,33 @@ namespace DebugOutput
 
         public string LastTextAll;
         public int LastEndLine { get; set; }
+        public string FontFamily
+        {
+            get
+            {
+                return _FontFamily;
+            }
+            set
+            {
+                _FontFamily = value;
+                NotifyPropertyChanged("FontFamily");
+            }
+        }
+        public int FontSize
+        {
+            get
+            {
+                return _FontSize;
+            }
+            set
+            {
+                _FontSize = value;
+                NotifyPropertyChanged("FontSize");
+            }
+        }
 
+        public string _FontFamily = LogSettings.Default.FontFamily;
+        public int _FontSize = LogSettings.Default.FontSize;
         public void ToggleVisibility()
         {
             if (HeaderVisibility == Visibility.Visible)

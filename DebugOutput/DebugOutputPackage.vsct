@@ -106,8 +106,20 @@
 				<LocCanonicalName>CollapseHeader</LocCanonicalName>
 			</Strings>
 		</Button>
-		
-    </Buttons>
+
+		<Button guid="guidDebugOutputPackageCmdSet" id="GoToBottom" priority="0x0004" type="Button">
+			<Parent guid="guidDebugOutputPackageCmdSet" id="cmdidDebugOutput_ToolbarGroupGeneral" />
+			<Icon guid="ImageCatalogGuid" id="GoToBottom" />
+			<CommandFlag>IconIsMoniker</CommandFlag>
+			<Strings>
+				<CommandName>GoToBottom</CommandName>
+				<ButtonText>GoToBottom</ButtonText>
+				<MenuText>DebugOutput GoToBottom</MenuText>
+				<LocCanonicalName>GoToBottom</LocCanonicalName>
+			</Strings>
+		</Button>
+
+	</Buttons>
 
 	  <Groups>
 		  <Group guid="guidDebugOutputPackageCmdSet" id="cmdidDebugOutput_Toolbar" priority="0x0600">
@@ -133,6 +145,7 @@
 		<IDSymbol value="0x0120" name="OpenSettings" />
 		<IDSymbol value="0x0130" name="ClearList" />
 		<IDSymbol value="0x0140" name="CollapseHeader" />
+		<IDSymbol value="0x0150" name="GoToBottom" />
 	  </GuidSymbol>
   
   </Symbols>

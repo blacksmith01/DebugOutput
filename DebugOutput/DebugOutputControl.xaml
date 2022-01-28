@@ -6,6 +6,8 @@
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
+             FontFamily="{Binding FontFamily, UpdateSourceTrigger=PropertyChanged}"
+             FontSize="{Binding FontSize, UpdateSourceTrigger=PropertyChanged}"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="600"
              Name="MyToolWindow"
@@ -24,7 +26,7 @@
     <UserControl.DataContext>
         <local:DebugOutputViewDataContext/>
     </UserControl.DataContext>
-    <Grid>
+    <Grid x:Name="logGrid" ScrollViewer.ScrollChanged="OnScrollChanged">
         <ListView x:Name="logListView" 
                   ItemsSource="{Binding Items}" 
                   >

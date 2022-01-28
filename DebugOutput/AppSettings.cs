@@ -218,7 +218,8 @@ namespace DebugOutput
         public string CaptureRegex { get; set; }
         public List<RegexCaptureOrderItem> TypeOrders { get; set; }
         public List<LogLevelItem> CustomLevels { get; set; }
-
+        public string FontFamily { get; set; }
+        public int FontSize { get; set; }
         public int OrderTime => GetTypeOrder("DateTime");
         public int OrderLevel => GetTypeOrder("Level");
         public int OrderThread => GetTypeOrder("Thread");
@@ -248,7 +249,9 @@ namespace DebugOutput
                 new LogLevelItem{ Name="Warn", Match="WARN|WARNING|Warn|Warning|warn|warning", ColorType=DebugOutputColorType.Custom, ColorValue="#FFFF00" },
                 new LogLevelItem{ Name="Info", Match="INFO|INFORMATION|Info|Information|info|information", ColorType=DebugOutputColorType.Custom, ColorValue="#00FF00" },
                 new LogLevelItem{ Name="Debug", Match="DBG|DEBUG|Dbg|Debug|dbg|debug", ColorType=DebugOutputColorType.Default, ColorValue="#FFFFFF" },
-            }
+            },
+            FontFamily = "Cascadia Mono",
+            FontSize = 12,
         };
         public static readonly string DefaultSerialized = JsonConvert.SerializeObject(Default);
 
@@ -295,6 +298,14 @@ namespace DebugOutput
                         col.Order = FindRemainOrderSlots().First();
                     }
                 }
+            }
+            if (string.IsNullOrEmpty(FontFamily))
+            {
+                FontFamily = Default.FontFamily;
+            }
+            if (FontSize <= 0)
+            {
+                FontSize = Default.FontSize;
             }
         }
         public int[] FindRemainOrderSlots()

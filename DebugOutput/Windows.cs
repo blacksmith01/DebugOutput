@@ -72,6 +72,7 @@ namespace DebugOutput
 
         public DebugOutputControl Control => (Content as DebugOutputControl);
         public override bool SearchEnabled => true;
+
         public override IVsSearchTask CreateSearch(uint dwCookie, IVsSearchQuery pSearchQuery, IVsSearchCallback pSearchCallback)
         {
             if (pSearchQuery == null || pSearchCallback == null)

@@ -41,6 +41,7 @@ namespace DebugOutput
             await AddToolbarCommandAsync<OpenSettingsCommand>();
             await AddToolbarCommandAsync<ClearListCommand>();
             await AddToolbarCommandAsync<CollapseHeaderCommand>();
+            await AddToolbarCommandAsync<GoToBottomCommand>();
         }
 
         async Task AddToolbarCommandAsync<T>() where T: CommandBase, new()

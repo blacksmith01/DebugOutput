@@ -148,4 +148,21 @@ namespace DebugOutput
             }
         }
     }
+    public class GoToBottomCommand : CommandBase
+    {
+        public GoToBottomCommand() :
+            base(0x0150)
+        {
+        }
+
+        protected override void Execute(object sender, EventArgs e)
+        {
+            var window = MyPackage.FindToolWindow(typeof(DebugOutputWindow), 0, true);
+            if ((null != window) && (null != window.Frame))
+            {
+                var ctrl = window.Content as DebugOutputControl;
+                ctrl.GoToBottom();
+            }
+        }
+    }
 }

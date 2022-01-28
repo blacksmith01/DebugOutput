@@ -1,14 +1,12 @@
-﻿using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Linq;
-using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.PlatformUI;
+using System.Diagnostics;
 
 namespace DebugOutput
 {
@@ -26,6 +24,9 @@ namespace DebugOutput
 
         bool ApplyToolSettings(LogSettings settings)
         {
+            MyDataContext.FontFamily = settings.FontFamily;
+            MyDataContext.FontSize = settings.FontSize;
+
             textBox.Text = settings.CaptureRegex;
 
             listBox.Items.Clear();
@@ -41,13 +42,13 @@ namespace DebugOutput
             }
 
             MyDataContext.LevelItems.Assign(settings.CustomLevels);
-            
+
             return true;
         }
 
         void SaveUserSettings()
         {
-            var settings = RetieveLogSettings();
+            var settings = RetrieveLogSettings();
             SaveUserSettings(settings);
         }
 
@@ -56,7 +57,7 @@ namespace DebugOutput
             MyPackage.SaveUserSettings(settings);
         }
 
-        LogSettings RetieveLogSettings()
+        LogSettings RetrieveLogSettings()
         {
             var orderList = new List<RegexCaptureOrderItem>();
             foreach (string item in listBox.Items)
@@ -64,7 +65,7 @@ namespace DebugOutput
                 orderList.Add(new RegexCaptureOrderItem
                 {
                     Name = item,
-                    Order = listBox.Items.IndexOf(item)
+                    Order = listBox.Items.IndexOf(item),
                 });
             }
 
@@ -73,12 +74,14 @@ namespace DebugOutput
                 CaptureRegex = textBox.Text,
                 TypeOrders = orderList,
                 CustomLevels = dataGrid.Items.OfType<LogLevelItem>().ToList(),
+                FontFamily = textFontFamily.Text,
+                FontSize = (int)sldFontSize.Value,
             };
         }
 
         private void GuiEvent_ClickApply(object sender, RoutedEventArgs e)
         {
-            var settings = RetieveLogSettings();
+            var settings = RetrieveLogSettings();
             SaveUserSettings(settings);
             var window = MyPackage.FindToolWindow(typeof(DebugOutputWindow), 0, true);
             if ((null != window) && (null != window.Frame))
@@ -161,8 +164,36 @@ namespace DebugOutput
     {
         public DebugOutputSettingViewDataContext()
         {
+
         }
 
         public LogLevelList LevelItems { get; set; } = new LogLevelList();
+        public string FontFamily
+        {
+            get
+            {
+                return _FontFamily;
+            }
+            set
+            {
+                _FontFamily = value;
+                NotifyPropertyChanged("FontFamily");
+            }
+        }
+        public int FontSize
+        {
+            get
+            {
+                return _FontSize;
+            }
+            set
+            {
+                _FontSize = value;
+                NotifyPropertyChanged("FontSize");
+            }
+        }
+
+        public string _FontFamily = LogSettings.Default.FontFamily;
+        public int _FontSize = LogSettings.Default.FontSize;
     }
 }
