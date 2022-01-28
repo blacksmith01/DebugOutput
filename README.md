@@ -10,7 +10,7 @@
 ## 0.7.2
 - added category column.
 - maximized search bar.
-# 0.7.3
+## 0.7.3
 - added font family / font size settings.
 - automatically scrolling listview.
 - added 'Go to Bottom' button.
