@@ -13,6 +13,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -53,7 +54,8 @@ namespace DebugOutput
         double _scrollExtentHeight;
         double _scrollViewportHeight;
 
-
+        StringBuilder _sb = new StringBuilder();
+        SortedDictionary<int, string> _copyingColumns = new SortedDictionary<int, string>();
         public DebugOutputControl()
         {
             this.InitializeComponent();
@@ -469,6 +471,47 @@ namespace DebugOutput
             _scrollVerticalOffset = e.VerticalOffset;
             _scrollViewportHeight = e.ViewportHeight;
             _scrollExtentHeight = e.ExtentHeight;
+        }
+
+        private void ListViewItem_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyboardDevice.IsKeyDown(Key.LeftCtrl) || e.KeyboardDevice.IsKeyDown(Key.RightCtrl))
+            {
+                if (e.Key == Key.C)
+                {
+                    _sb.Clear();
+                    int iCol = 0;
+                    foreach (OutputViewItem item in logListView.SelectedItems)
+                    {
+                        if (iCol > 0)
+                        {
+                            _sb.AppendLine();
+                        }
+
+                        _copyingColumns.Clear();
+                        _copyingColumns[orderTime] = item.Time;
+                        _copyingColumns[orderLevel] = item.Level;
+                        _copyingColumns[orderThread] = item.Thread;
+                        _copyingColumns[orderCategory] = item.Category;
+                        _copyingColumns[orderText] = item.Text;
+                        _copyingColumns[orderFile] = item.File;
+                        _copyingColumns[orderLine] = item.Line.ToString();
+
+                        int iCopy = 0;
+                        foreach (var p in _copyingColumns)
+                        {
+                            if (iCopy > 0)
+                            {
+                                _sb.Append('|');
+                            }
+                            _sb.Append(p.Value);
+                            iCopy++;
+                        }
+                        iCol++;
+                    }
+                    Clipboard.SetText(_sb.ToString());
+                }
+            }
         }
     }
 

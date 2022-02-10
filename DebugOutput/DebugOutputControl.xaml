@@ -34,6 +34,7 @@
                 <Style TargetType="{x:Type ListViewItem}" BasedOn="{StaticResource {x:Type ListViewItem}}">
                     <EventSetter Event="Loaded" Handler="GuiEvent_ListViewItemLoaded"/>
                     <EventSetter Event="MouseDoubleClick" Handler="GuiEvent_DoubleClick" />
+                    <EventSetter Event="KeyDown" Handler="ListViewItem_KeyDown"/>
                 </Style>
             </ListView.ItemContainerStyle>
             <ListView.View>
