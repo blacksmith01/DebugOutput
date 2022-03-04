@@ -4,6 +4,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -204,10 +206,9 @@ namespace DebugOutput
             MyDataContext.LastEndLine = 0;
         }
 
-        void UpdateItems()
+        async Task UpdateItemsAsync()
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             UpdateItems((MyPackage.dte.Windows.Item(EnvDTE.Constants.vsWindowKindOutput).Object as EnvDTE.OutputWindow).OutputWindowPanes.Item("Debug"));
         }
 
@@ -430,17 +431,24 @@ namespace DebugOutput
             loadedState = true;
             loaedCount++;
 
-            if (MyPackage.IsDebugging)
+            try
             {
-                ClearItems();
-                UpdateItems();
-            }
-            else
-            {
-                if (loaedCount > 1)
+                if (MyPackage.IsDebugging)
                 {
-                    UpdateItems();
+                    ClearItems();
+                    _ = UpdateItemsAsync();
                 }
+                else
+                {
+                    if (loaedCount > 1)
+                    {
+                        _ = UpdateItemsAsync();
+                    }
+                }
+            }
+            catch
+            {
+
             }
         }
 
